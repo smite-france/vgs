@@ -25,9 +25,9 @@ jobs:
 
       - name: Use variables
         run: |
-          echo "repository variable : VITE_HOST"
-          echo "organization variable : VITE_TWITCH_CLIENT_ID"
-          echo "overridden variable : VITE_TWITCH_CLIENT_URL"
+          echo "repository variable : $VITE_HOST"
+          echo "organization variable : $VITE_TWITCH_CLIENT_ID"
+          echo "overridden variable : $VITE_TWITCH_CLIENT_URL"
         env:
           VITE_HOST: ${{ vars.VITE_HOST }}
           VITE_TWITCH_CLIENT_ID: ${{ vars.VITE_TWITCH_CLIENT_ID }}
