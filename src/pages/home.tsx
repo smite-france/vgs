@@ -44,8 +44,8 @@ import { wait } from '@/lib/wait'
 
 const formSchema = z.object({
   channel: z.string().min(2),
-  god: z.string().min(2),
-  skin: z.string().min(2),
+  god: z.string(),
+  skin: z.string(),
   volume: z.number().min(0).max(100),
 })
 
