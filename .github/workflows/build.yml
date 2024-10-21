@@ -23,6 +23,16 @@ jobs:
       - name: Install dependencies
         uses: bahmutov/npm-install@v1
 
+      - name: Use variables
+        run: |
+          echo "repository variable : VITE_HOST"
+          echo "organization variable : VITE_TWITCH_CLIENT_ID"
+          echo "overridden variable : VITE_TWITCH_CLIENT_URL"
+        env:
+          VITE_HOST: ${{ vars.VITE_HOST }}
+          VITE_TWITCH_CLIENT_ID: ${{ vars.VITE_TWITCH_CLIENT_ID }}
+          VITE_TWITCH_CLIENT_URL: ${{ vars.VITE_TWITCH_CLIENT_URL }}
+
       - name: Build project
         run: npm run build
         env:
