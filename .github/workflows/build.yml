@@ -26,9 +26,9 @@ jobs:
       - name: Build project
         run: npm run build
         env:
-          VITE_HOST: ${{ secrets.VITE_HOST }}
-          VITE_TWITCH_CLIENT_ID: ${{ secrets.VITE_TWITCH_CLIENT_ID }}
-          VITE_TWITCH_CLIENT_URL: ${{ secrets.VITE_TWITCH_CLIENT_URL }}
+          VITE_HOST: ${{ vars.VITE_HOST }}
+          VITE_TWITCH_CLIENT_ID: ${{ vars.VITE_TWITCH_CLIENT_ID }}
+          VITE_TWITCH_CLIENT_URL: ${{ vars.VITE_TWITCH_CLIENT_URL }}
 
       - name: Upload production-ready build files
         uses: actions/upload-artifact@v4
