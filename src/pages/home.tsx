@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { Check, ChevronsUpDown } from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { StaticAuthProvider } from '@twurple/auth'
 import { ChatClient } from '@twurple/chat'
 import { Listener } from '@d-fischer/typed-event-emitter'
@@ -98,9 +98,11 @@ export function Home() {
         refChatClient.current.onMessage((_channel, _user, text) => {
           new Howl({
             autoplay: true,
-            src: ["https://vgs.smitefrance.fr/resources/VGS/vgs_default/male_01/vox_vgs_emote_a.ogg"],
+            src: [
+              'https://vgs.smitefrance.fr/resources/VGS/vgs_default/male_01/vox_vgs_emote_a.ogg',
+            ],
             volume: args.volume / 100,
-          });
+          })
           console.log({
             text,
             ...args,
@@ -189,6 +191,10 @@ export function Home() {
 
   const formGod = form.watch('god')
 
+  const selectedGod = useMemo(() => {
+    return GODS.find(({ name }) => name === formGod)
+  }, [formGod])
+
   return (
     <div className="flex justify-center">
       <div className="flex gap-4">
@@ -248,7 +254,11 @@ export function Home() {
                                   key={g.name}
                                   onSelect={() => {
                                     form.setValue('god', g.name)
-                                    form.setValue('skin', g.skins[0].name)
+                                    if ('skins' in g) {
+                                      form.setValue('skin', g.skins[0].name)
+                                    } else {
+                                      form.setValue('skin', '-')
+                                    }
                                   }}
                                 >
                                   <Check
@@ -281,6 +291,10 @@ export function Home() {
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
+                            disabled={
+                              selectedGod === undefined ||
+                              !('skins' in selectedGod)
+                            }
                             variant="outline"
                             role="combobox"
                             className={cn(
@@ -299,28 +313,27 @@ export function Home() {
                           <CommandList>
                             <CommandEmpty>No skin found.</CommandEmpty>
                             <CommandGroup>
-                              {(
-                                GODS.find((i) => i.name === formGod)?.skins ??
-                                []
-                              ).map((s) => (
-                                <CommandItem
-                                  value={s.name}
-                                  key={s.name}
-                                  onSelect={() => {
-                                    form.setValue('skin', s.name)
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      'mr-2 h-4 w-4',
-                                      s.name === field.value
-                                        ? 'opacity-100'
-                                        : 'opacity-0'
-                                    )}
-                                  />
-                                  {s.name}
-                                </CommandItem>
-                              ))}
+                              {selectedGod !== undefined &&
+                                'skins' in selectedGod &&
+                                selectedGod.skins.map((s) => (
+                                  <CommandItem
+                                    value={s.name}
+                                    key={s.name}
+                                    onSelect={() => {
+                                      form.setValue('skin', s.name)
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        'mr-2 h-4 w-4',
+                                        s.name === field.value
+                                          ? 'opacity-100'
+                                          : 'opacity-0'
+                                      )}
+                                    />
+                                    {s.name}
+                                  </CommandItem>
+                                ))}
                             </CommandGroup>
                           </CommandList>
                         </Command>

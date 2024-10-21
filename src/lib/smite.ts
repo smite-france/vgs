@@ -1,12 +1,3 @@
-const DEFAULT_GOD = {
-  name: 'Default',
-  skins: [
-    {
-      name: 'Default',
-    },
-  ],
-}
-
 const ALL_GODS = [
   {
     name: 'Achilles',
@@ -6379,6 +6370,11 @@ const ALL_GODS = [
 ]
 
 export const GODS = [
-  DEFAULT_GOD,
-  ...ALL_GODS
+  {
+    name: 'Default'
+  },
+  ...ALL_GODS,
+  {
+    name: 'Kingkrool'
+  }
 ]
