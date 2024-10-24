@@ -41,6 +41,7 @@ import { HOST, TWITCH_CLIENT_ID, TWITCH_CLIENT_SCOPE } from '@/constant'
 import { cn } from '@/lib/utils'
 import { wait } from '@/lib/wait'
 import { useGods } from '@/hooks/use-gods'
+import { useGodVgs } from '@/hooks/use-god-vgs'
 
 const formSchema = z.object({
   channel: z.string().min(2),
@@ -72,8 +73,6 @@ export function Home() {
   )
 
   const refChatClient = useRef<ChatClient | undefined>(undefined)
-
-  const godsData = useGods()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -190,6 +189,11 @@ export function Home() {
       title: 'Saved',
     })
   }
+
+  const godsData = useGods()
+  const godVgsData = useGodVgs({ god, skin })
+
+  console.log(godVgsData)
 
   const formGod = form.watch('god')
 
