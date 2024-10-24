@@ -5,11 +5,11 @@ type StoreState = {
   volume: number
   setVolume: (volume: number) => void
 
-  god: string
-  setGod: (god: string) => void
+  godId: string
+  setGodId: (godId: string) => void
 
-  skin: string
-  setSkin: (skin: string) => void
+  skinId: string
+  setSkinId: (skinId: string) => void
 
   channel: string
   setChannel: (channel: string) => void
@@ -18,11 +18,11 @@ type StoreState = {
 export const useAppStore = create<StoreState>()(
   persist(
     (set) => ({
-      god: 'Default',
-      setGod: (god: string) => set({ god }),
+      godId: '1',
+      setGodId: (godId: number) => set({ godId }),
 
-      skin: 'Default',
-      setSkin: (skin: string) => set({ skin }),
+      skinId: '1',
+      setSkinId: (skinId: number) => set({ skinId }),
 
       channel: 'tilican',
       setChannel: (channel: string) => set({ channel }),

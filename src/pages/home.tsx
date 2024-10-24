@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { Check, ChevronsUpDown } from 'lucide-react'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { StaticAuthProvider } from '@twurple/auth'
 import { ChatClient } from '@twurple/chat'
 import { Listener } from '@d-fischer/typed-event-emitter'
@@ -41,12 +41,12 @@ import { HOST, TWITCH_CLIENT_ID, TWITCH_CLIENT_SCOPE } from '@/constant'
 import { cn } from '@/lib/utils'
 import { wait } from '@/lib/wait'
 import { useGods } from '@/hooks/use-gods'
-import { useGodVgs } from '@/hooks/use-god-vgs'
+import { useSkins } from '@/hooks/use-skins'
 
 const formSchema = z.object({
   channel: z.string().min(2),
-  god: z.string(),
-  skin: z.string(),
+  godId: z.string(),
+  skinId: z.string(),
   volume: z.number().min(0).max(100),
 })
 
@@ -57,10 +57,10 @@ export function Home() {
   const channel = useAppStore((s) => s.channel)
   const setChannel = useAppStore((s) => s.setChannel)
 
-  const god = useAppStore((s) => s.god)
-  const setGod = useAppStore((s) => s.setGod)
-  const skin = useAppStore((s) => s.skin)
-  const setSkin = useAppStore((s) => s.setSkin)
+  const godId = useAppStore((s) => s.godId)
+  const setGodId = useAppStore((s) => s.setGodId)
+  const skinId = useAppStore((s) => s.skinId)
+  const setSkinId = useAppStore((s) => s.setSkinId)
   const volume = useAppStore((s) => s.volume)
   const setVolume = useAppStore((s) => s.setVolume)
 
@@ -79,13 +79,13 @@ export function Home() {
     defaultValues: {
       channel,
       volume,
-      god,
-      skin,
+      godId: '1',
+      skinId: '1',
     },
   })
 
   const registerListener = useCallback(
-    (args: { god: string; skin: string; volume: number }) => {
+    (args: { godId: string; skinId: string; volume: number }) => {
       if (refChatClient.current === undefined) {
         return
       }
@@ -142,7 +142,7 @@ export function Home() {
           wait(2500),
         ])
 
-        registerListener({ god, skin, volume })
+        registerListener({ godId, skinId, volume })
         setIsListening(true)
       } catch (error) {
         console.error('Error while joining the channel:', error)
@@ -154,7 +154,7 @@ export function Home() {
         setIsConnecting(false)
       }
     },
-    [god, registerListener, skin, toast, token, volume]
+    [godId, registerListener, skinId, toast, token, volume]
   )
 
   const handeClickListening = () => {
@@ -164,8 +164,8 @@ export function Home() {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSaving(true)
     setVolume(values.volume)
-    setGod(values.god)
-    setSkin(values.skin)
+    setGodId(values.godId)
+    setSkinId(values.skinId)
     setChannel(values.channel)
 
     if (isListening && refChatClient.current !== undefined) {
@@ -176,8 +176,8 @@ export function Home() {
         })
       } else {
         registerListener({
-          god: values.god,
-          skin: values.skin,
+          godId: values.godId,
+          skinId: values.skinId,
           volume: values.volume,
         })
       }
@@ -191,15 +191,9 @@ export function Home() {
   }
 
   const godsData = useGods()
-  const godVgsData = useGodVgs({ god, skin })
+  const skinsData = useSkins()
 
-  console.log(godVgsData)
-
-  const formGod = form.watch('god')
-
-  const selectedGod = useMemo(() => {
-    return godsData.data?.find(({ name }) => name === formGod)
-  }, [formGod, godsData.data])
+  const formGodId = form.watch('godId')
 
   return (
     <div className="flex justify-center">
@@ -228,7 +222,7 @@ export function Home() {
             <div className="flex gap-2">
               <FormField
                 control={form.control}
-                name="god"
+                name="godId"
                 render={({ field }) => (
                   <FormItem className="flex-grow flex flex-col">
                     <FormLabel>God</FormLabel>
@@ -243,7 +237,8 @@ export function Home() {
                               !field.value && 'text-muted-foreground'
                             )}
                           >
-                            {field.value ?? 'Select God'}
+                            {godsData.data?.find((i) => i.id === field.value)
+                              ?.name ?? 'Select God'}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>
@@ -256,21 +251,24 @@ export function Home() {
                             <CommandGroup>
                               {godsData.data?.map((g) => (
                                 <CommandItem
-                                  value={g.name}
-                                  key={g.name}
+                                  value={g.id}
+                                  key={g.id}
                                   onSelect={() => {
-                                    form.setValue('god', g.name)
-                                    if ('skins' in g) {
-                                      form.setValue('skin', g.skins[0].name)
-                                    } else {
-                                      form.setValue('skin', '-')
-                                    }
+                                    form.setValue('godId', g.id)
+                                    const standardSkin = skinsData.data?.find(
+                                      (s) =>
+                                        s.id_god === g.id &&
+                                        s.name
+                                          .toLowerCase()
+                                          .includes('standard')
+                                    )
+                                    form.setValue('skinId', standardSkin?.id ?? "1")
                                   }}
                                 >
                                   <Check
                                     className={cn(
                                       'mr-2 h-4 w-4',
-                                      g.name === field.value
+                                      g.id === field.value
                                         ? 'opacity-100'
                                         : 'opacity-0'
                                     )}
@@ -289,7 +287,7 @@ export function Home() {
               />
               <FormField
                 control={form.control}
-                name="skin"
+                name="skinId"
                 render={({ field }) => (
                   <FormItem className="flex-grow flex flex-col">
                     <FormLabel>Skin</FormLabel>
@@ -297,10 +295,6 @@ export function Home() {
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            disabled={
-                              selectedGod === undefined ||
-                              !('skins' in selectedGod)
-                            }
                             variant="outline"
                             role="combobox"
                             className={cn(
@@ -308,7 +302,10 @@ export function Home() {
                               !field.value && 'text-muted-foreground'
                             )}
                           >
-                            {field.value ?? 'Select a skin'}
+                            {skinsData.data?.find(
+                              (i) =>
+                                i.id === field.value && i.id_god === formGodId
+                            )?.name ?? 'Select a Skin'}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>
@@ -319,20 +316,20 @@ export function Home() {
                           <CommandList>
                             <CommandEmpty>No skin found.</CommandEmpty>
                             <CommandGroup>
-                              {selectedGod !== undefined &&
-                                'skins' in selectedGod &&
-                                selectedGod.skins.map((s) => (
+                              {skinsData.data
+                                ?.filter((s) => s.id_god === formGodId)
+                                .map((s) => (
                                   <CommandItem
-                                    value={s.name}
-                                    key={s.name}
+                                    value={s.id}
+                                    key={s.id}
                                     onSelect={() => {
-                                      form.setValue('skin', s.name)
+                                      form.setValue('skinId', s.id)
                                     }}
                                   >
                                     <Check
                                       className={cn(
                                         'mr-2 h-4 w-4',
-                                        s.name === field.value
+                                        s.id === field.value
                                           ? 'opacity-100'
                                           : 'opacity-0'
                                       )}

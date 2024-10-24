@@ -1,17 +1,16 @@
 import useSWR from 'swr'
 import ky from 'ky'
 
+type GodsType = Array<{
+  id: string
+  name: string
+  skins: Array<{ id: string; name: string }>
+}>
+
 export const useGods = () => {
-  return useSWR<
-    Array<{
-      name: string
-      skins: Array<{ name: string }>
-    }>
-  >(
+  return useSWR<GodsType>(
     '/api.php?c=gods',
-    (
-      url: string
-    ): Promise<Array<{ name: string; skins: Array<{ name: string }> }>> => {
+    (url: string): Promise<GodsType> => {
       return ky.get(url).json()
     }
   )
