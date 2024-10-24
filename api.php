@@ -12,15 +12,26 @@ try {
 
     switch ($c) {
         case 'gods':
-            $stmt = $pdo->prepare("SELECT name FROM gods") ;
+            $stmt = $pdo->prepare("SELECT gods.name AS god_name, skins.name AS skin_name FROM gods LEFT JOIN skins ON gods.id = skins.id_god");
             $stmt->execute();
             $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            if ($results) {
-                echo json_encode($results);
-            } else {
-                echo json_encode([]);
+            $godsWithSkins = [];
+
+            foreach ($results as $row) {
+                $godName = $row['god_name'];
+                $skinName = $row['skin_name'];
+
+                if (!isset($godsWithSkins[$godName])) {
+                    $godsWithSkins[$godName] = [];
+                }
+
+                if (!is_null($skinName)) {
+                    $godsWithSkins[$godName][] = $skinName;
+                }
             }
+
+            echo json_encode($godsWithSkins);
             exit;
 
         case 'skins':
