@@ -22,12 +22,26 @@ try {
                 $godName = $row['god_name'];
                 $skinName = $row['skin_name'];
 
-                if (!isset($godsWithSkins[$godName])) {
-                    $godsWithSkins[$godName] = [];
+                $foundIndex = null;
+                foreach ($godsWithSkins as $index => $god) {
+                    if ($god['name'] === $godName) {
+                        $foundIndex = $index;
+                        break;
+                    }
+                }
+
+                if ($foundIndex === null) {
+                    $godsWithSkins[] = [
+                        'name' => $godName,
+                        'skins' => []
+                    ];
+                    $foundIndex = count($godsWithSkins) - 1;
                 }
 
                 if (!is_null($skinName)) {
-                    $godsWithSkins[$godName][] = $skinName;
+                    $godsWithSkins[$foundIndex]['skins'][] = [
+                        'name' => $skinName
+                    ];
                 }
             }
 
