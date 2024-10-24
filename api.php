@@ -48,20 +48,41 @@ try {
             echo json_encode($godsWithSkins);
             exit;
 
-        case 'skins':
-            http_response_code(404);
-            echo json_encode([
-                'error' => 'TODO'
-            ]);
-            exit;
+        case 'god':
+            switch ($m) {
+                case 'vgs':
+                    $godName = $_GET['god'] ?? null;
+                    $skinName = $_GET['skin'] ?? null;
 
-        case 'vgs':
-            http_response_code(404);
-            echo json_encode([
-                'error' => 'TODO'
-            ]);
-            exit;
+                    // Vérification des paramètres
+                    if (empty($godName) || empty($skinName)) {
+                        http_response_code(400); // Bad Request
+                        echo json_encode(['error' => '"god" and "skin" parameters are required.']);
+                        exit;
+                    }
 
+                    $stmt = $pdo->prepare("
+SELECT DISTINCT vgs.name AS vgs_name
+FROM vgs
+JOIN skins ON vgs.id_skin = skins.id
+JOIN gods ON skins.id_god = gods.id
+WHERE gods.name = :god_name AND skins.name = :skin_name;
+");
+
+                    $stmt->execute([
+                        ':god_name' => $godName,
+                        ':skin_name' => $skinName
+                    ]);
+                    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    echo json_encode($results);
+                    exit;
+                default:
+                    http_response_code(404);
+                    echo json_encode([
+                        'error' => '"m" params required.'
+                    ]);
+                    exit;
+            }
         default:
             http_response_code(404);
             echo json_encode([
