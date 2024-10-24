@@ -1,12 +1,13 @@
 <?php
 
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *'); // for dev purpose
 
 try {
     $pdo = new PDO('sqlite:/home/smitefrawc/db-vgs/vgs.db');
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    $stmt = $pdo->prepare("SELECT name FROM gods");
+    $stmt = $pdo->prepare("SELECT name FROM gods") ;
     $stmt->execute();
     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
