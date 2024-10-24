@@ -12,7 +12,7 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api/gods': 'http://localhost:4567',
+      '/api.php': 'https://vgs.smitefrance.fr/api.php',
     },
   },
 })

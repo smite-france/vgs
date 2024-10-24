@@ -39,8 +39,8 @@ import { useAppStore } from '@/store/app'
 import { useTwitchStore } from '@/store/twitch'
 import { HOST, TWITCH_CLIENT_ID, TWITCH_CLIENT_SCOPE } from '@/constant'
 import { cn } from '@/lib/utils'
-import { GODS } from '@/lib/smite'
 import { wait } from '@/lib/wait'
+import { useGods } from '@/hooks/use-gods'
 
 const formSchema = z.object({
   channel: z.string().min(2),
@@ -72,6 +72,8 @@ export function Home() {
   )
 
   const refChatClient = useRef<ChatClient | undefined>(undefined)
+
+  const godsData = useGods()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -192,8 +194,8 @@ export function Home() {
   const formGod = form.watch('god')
 
   const selectedGod = useMemo(() => {
-    return GODS.find(({ name }) => name === formGod)
-  }, [formGod])
+    return godsData.data?.find(({ name }) => name === formGod)
+  }, [formGod, godsData.data])
 
   return (
     <div className="flex justify-center">
@@ -248,7 +250,7 @@ export function Home() {
                           <CommandList>
                             <CommandEmpty>No God found.</CommandEmpty>
                             <CommandGroup>
-                              {GODS.map((g) => (
+                              {godsData.data?.map((g) => (
                                 <CommandItem
                                   value={g.name}
                                   key={g.name}
