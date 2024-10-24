@@ -19,10 +19,10 @@ export const useAppStore = create<StoreState>()(
   persist(
     (set) => ({
       godId: '1',
-      setGodId: (godId: number) => set({ godId }),
+      setGodId: (godId: string) => set({ godId }),
 
       skinId: '1',
-      setSkinId: (skinId: number) => set({ skinId }),
+      setSkinId: (skinId: string) => set({ skinId }),
 
       channel: 'tilican',
       setChannel: (channel: string) => set({ channel }),
