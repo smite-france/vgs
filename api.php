@@ -78,28 +78,6 @@ LIMIT 1;
 
                     echo json_encode($result);
                     exit;
-                default:
-                    $id_skin = $_GET['id_skin'] ?? null;
-
-                    if (empty($id_skin)) {
-                        http_response_code(400);
-                        echo json_encode(['error' => '"id_skin" parameter is required.']);
-                        exit;
-                    }
-
-                    $stmt = $pdo->prepare("SELECT DISTINCT vgs.name
-FROM vgs
-         JOIN skins ON vgs.id_skin = skins.id
-         JOIN gods ON skins.id_god = gods.id
-WHERE vgs.id_skin = :id_skin
-   OR (LOWER(gods.name) = 'default' AND LOWER(skins.name) = 'default')
-   OR (skins.id = :id_skin AND LOWER(skins.name) LIKE '%standard%');");
-                    $stmt->bindParam(':id_skin', $id_skin);
-                    $stmt->execute();
-                    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-                    echo json_encode($results);
-                    exit;
             }
         default:
             http_response_code(404);
