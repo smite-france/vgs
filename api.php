@@ -57,7 +57,20 @@ try {
                         exit;
                     }
 
-                    $stmt = $pdo->prepare("SELECT name, url FROM vgs WHERE name = :name AND id_skin = :id_skin ORDER BY RANDOM() LIMIT 1");
+                    $stmt = $pdo->prepare("SELECT name, url
+FROM vgs
+WHERE (id_skin = :id_skin AND name = :name)
+   OR (id_skin IN (SELECT id FROM skins WHERE id_god = (SELECT id_god FROM skins WHERE id = :id_skin) AND LOWER(name) LIKE '%standard%') AND name = :name)
+   OR (id_skin IN (SELECT id FROM skins WHERE LOWER(name) = 'default') AND name = :name)
+ORDER BY
+    CASE
+        WHEN id_skin = :id_skin THEN 1
+        WHEN id_skin IN (SELECT id FROM skins WHERE id_god = (SELECT id_god FROM skins WHERE id = :id_skin) AND LOWER(name) LIKE '%standard%') THEN 2
+        WHEN id_skin IN (SELECT id FROM skins WHERE LOWER(name) = 'default') THEN 3
+        END,
+    RANDOM()
+LIMIT 1;
+");
                     $stmt->bindParam(':name', $name);
                     $stmt->bindParam(':id_skin', $id_skin);
                     $stmt->execute();
