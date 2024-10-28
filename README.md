@@ -1,3 +1,19 @@
+## Smite France Twitch VGS
+
+[vgs.smitefrance.fr](https://vgs.smitefrance.fr/)
+
+Pour @Smite_Fr j'ai fait un ptit tool pour avoir le VGS(PC) depuis un tchat twitch :)
+Suffit de te connecter, choisir la chaine twitch et ton voice-pack ( on peux ajouter ton propre voice-pack si tu le souhaites :) )
+Et cliquer sur "Listen VGS" !!
+Enjoy ❤️
+
+For @Smite_Fr I made a little tool to get the VGS(PC) from a twitch chat :)
+Just connect, choose the twitch channel and your voice-pack ( you can add your own voice-pack if you want :) )
+And click on "Listen VGS"!!!
+Enjoy ❤️
+
+---
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
