@@ -1,7 +1,6 @@
 <?php
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *'); // for dev purpose
 
 $c = $_GET['c'] ?? null;
 $m = $_GET['m'] ?? null;
@@ -76,7 +75,7 @@ LIMIT 1;
                     $stmt->execute();
                     $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                    echo json_encode($result);
+                    echo json_encode($result ?: null);
                     exit;
             }
         default:
@@ -88,6 +87,8 @@ LIMIT 1;
     }
 
 } catch (PDOException $e) {
-    echo 'Connection failed: ' . $e->getMessage();
+    error_log($e->getMessage());
+    http_response_code(500);
+    echo json_encode(['error' => 'Internal error.']);
 }
 

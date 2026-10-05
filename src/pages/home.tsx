@@ -71,18 +71,22 @@ export function Home() {
       }
 
       const ff = refChatClient.current.onMessage((_channel, _user, text) => {
-        if (/^(V[A-Z]{2,})$/.test(text)) {
-          ky.get<{ name: string; url: string }>(
+        if (/^V[A-Z]+[0-9]?$/.test(text)) {
+          ky.get<{ name: string; url: string } | null>(
             `/api.php?c=vgs&m=sound&id_skin=${args.skinId}&name=${text}`
           )
             .then((a) => a.json())
-            .then(({ url }) => {
+            .then((sound) => {
+              if (!sound?.url) {
+                return
+              }
               new Howl({
                 autoplay: true,
-                src: [`/${url}`],
+                src: [`/${sound.url}`],
                 volume: args.volume / 100,
               })
             })
+            .catch(console.error)
         }
       })
       setUnsubscribe(ff)
