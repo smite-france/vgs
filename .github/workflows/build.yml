@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Build
+    name: Build & deploy
     runs-on: ubuntu-latest
 
     steps:
@@ -23,16 +23,6 @@ jobs:
       - name: Install dependencies
         uses: bahmutov/npm-install@v1
 
-      - name: Use variables
-        run: |
-          echo "repository variable : $VITE_HOST"
-          echo "organization variable : $VITE_TWITCH_CLIENT_ID"
-          echo "overridden variable : $VITE_TWITCH_CLIENT_URL"
-        env:
-          VITE_HOST: ${{ vars.VITE_HOST }}
-          VITE_TWITCH_CLIENT_ID: ${{ vars.VITE_TWITCH_CLIENT_ID }}
-          VITE_TWITCH_CLIENT_URL: ${{ vars.VITE_TWITCH_CLIENT_URL }}
-
       - name: Build project
         run: npm run build
         env:
@@ -40,28 +30,15 @@ jobs:
           VITE_TWITCH_CLIENT_ID: ${{ vars.VITE_TWITCH_CLIENT_ID }}
           VITE_TWITCH_CLIENT_URL: ${{ vars.VITE_TWITCH_CLIENT_URL }}
 
-      - name: Upload production-ready build files
-        uses: actions/upload-artifact@v4
+      - name: Deploy to FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          include-hidden-files: true
-          name: production-files
-          path: ./dist
-
-  deploy:
-    name: Deploy
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: production-files
-          path: ./dist
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: sftp
+          port: 22
+          local-dir: ./dist/
+          server-dir: ${{ vars.FTP_SERVER_DIR }}
+          exclude: |
+            output/**
