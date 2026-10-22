@@ -306,12 +306,18 @@ export function Home() {
           </div>
         </div>
         {isListening ? (
-          <iframe
-            title="twitch-chat"
-            src={`https://www.twitch.tv/embed/${channel}/chat?parent=${HOST}`}
-            className="flex-grow scroll-auto"
-            height={700}
-          />
+          <div className="flex flex-col gap-2">
+            <p className="text-sm text-muted-foreground">
+              Read-only: you cannot send messages from this chat (Twitch
+              blocks login inside embeds). Use the Twitch chat directly.
+            </p>
+            <iframe
+              title="twitch-chat"
+              src={`https://www.twitch.tv/embed/${channel}/chat?parent=${HOST}`}
+              className="flex-grow scroll-auto"
+              height={700}
+            />
+          </div>
         ) : (
           <div className="flex justify-items-center flex-grow h-[600px]">
             <Button
