@@ -1,8 +1,7 @@
 import { Check, ChevronsUpDown } from 'lucide-react'
-import { ChangeEventHandler, useCallback, useRef, useState } from 'react'
+import { ChangeEventHandler, useCallback, useEffect, useRef, useState } from 'react'
 import { StaticAuthProvider } from '@twurple/auth'
 import { ChatClient } from '@twurple/chat'
-import { Listener } from '@d-fischer/typed-event-emitter'
 import { Howl } from 'howler'
 import { useDebounceCallback } from 'usehooks-ts'
 import ky from 'ky'
@@ -29,7 +28,7 @@ import { useAppStore } from '@/store/app'
 import { useTwitchStore } from '@/store/twitch'
 import { HOST, TWITCH_CLIENT_ID, TWITCH_CLIENT_SCOPE } from '@/constant'
 import { cn } from '@/lib/utils'
-import { wait } from '@/lib/wait'
+import { timeout } from '@/lib/timeout'
 import { useGods } from '@/hooks/use-gods'
 import { useSkins } from '@/hooks/use-skins'
 import { Label } from '@/components/ui/label'
@@ -50,49 +49,16 @@ export function Home() {
 
   const [isListening, setIsListening] = useState<boolean>(false)
   const [isConnecting, setIsConnecting] = useState<boolean>(false)
-  const [unsubscribe, setUnsubscribe] = useState<Listener | undefined>(
-    undefined
-  )
 
   const godsData = useGods()
   const skinsData = useSkins()
 
   const refChatClient = useRef<ChatClient | undefined>(undefined)
+  // The chat listener is registered once and reads the latest settings here.
+  const refSettings = useRef({ skinId, volume })
+  refSettings.current = { skinId, volume }
 
-  const registerListener = useCallback(
-    (args: { godId: string; skinId: string; volume: number }) => {
-      if (refChatClient.current === undefined) {
-        return
-      }
-
-      if (unsubscribe !== undefined) {
-        refChatClient.current.removeListener(unsubscribe)
-        setUnsubscribe(undefined)
-      }
-
-      const ff = refChatClient.current.onMessage((_channel, _user, text) => {
-        if (/^V[A-Z]+[0-9]?$/.test(text)) {
-          ky.get<{ name: string; url: string } | null>(
-            `/api.php?c=vgs&m=sound&id_skin=${args.skinId}&name=${text}`
-          )
-            .then((a) => a.json())
-            .then((sound) => {
-              if (!sound?.url) {
-                return
-              }
-              new Howl({
-                autoplay: true,
-                src: [`/${sound.url}`],
-                volume: args.volume / 100,
-              })
-            })
-            .catch(console.error)
-        }
-      })
-      setUnsubscribe(ff)
-    },
-    [unsubscribe]
-  )
+  useEffect(() => () => refChatClient.current?.quit(), [])
 
   const listen = useCallback(
     async (args: { channel: string }) => {
@@ -101,7 +67,6 @@ export function Home() {
 
       if (token === null) {
         setIsConnecting(false)
-        setIsListening(false)
         throw new Error('Token is required')
       }
 
@@ -111,18 +76,37 @@ export function Home() {
           token,
           TWITCH_CLIENT_SCOPE
         )
-        refChatClient.current = new ChatClient({ authProvider })
-
-        refChatClient.current.connect()
+        const client = new ChatClient({ authProvider })
+        client.onMessage((_channel, _user, text) => {
+          if (!/^V[A-Z]+[0-9]?$/.test(text)) {
+            return
+          }
+          const { skinId, volume } = refSettings.current
+          ky.get<{ name: string; url: string } | null>(
+            `/api.php?c=vgs&m=sound&id_skin=${skinId}&name=${text}`
+          )
+            .then((a) => a.json())
+            .then((sound) => {
+              if (!sound?.url) {
+                return
+              }
+              new Howl({
+                autoplay: true,
+                src: [`/${sound.url}`],
+                volume: volume / 100,
+              })
+            })
+            .catch(console.error)
+        })
+        client.connect()
+        refChatClient.current = client
       }
 
       try {
         await Promise.race([
-          refChatClient.current?.join(args.channel),
-          wait(10_000),
+          refChatClient.current.join(args.channel),
+          timeout(10_000),
         ])
-
-        registerListener({ godId, skinId, volume })
         setIsListening(true)
       } catch (error) {
         console.error('Error while joining the channel:', error)
@@ -134,7 +118,7 @@ export function Home() {
         setIsConnecting(false)
       }
     },
-    [godId, registerListener, skinId, toast, token, volume]
+    [toast, token]
   )
 
   const handeClickListening = () => {
@@ -162,24 +146,8 @@ export function Home() {
     debouncedRefreshChannel(newChannel, oldChannel)
   }
 
-  const refreshVGS = useCallback(
-    (newGodId: string, newSkinId: string, newVolume: number) => {
-      registerListener({
-        godId: newGodId,
-        skinId: newSkinId,
-        volume: newVolume,
-      })
-    },
-    [registerListener]
-  )
-
-  const debouncedRefreshVGS = useDebounceCallback(refreshVGS, 500)
-
   const handleOnChangeVolume = (value: number[]) => {
-    const newVolume = value[0] ?? 0
-    setVolume(newVolume)
-
-    debouncedRefreshVGS(godId, skinId, newVolume)
+    setVolume(value[0] ?? 0)
   }
 
   const handleChangeGod = (newGodId: string): void => {
@@ -187,17 +155,11 @@ export function Home() {
     const standardSkin = skinsData.data?.find(
       (s) => s.id_god === newGodId && s.name.toLowerCase().includes('standard')
     )
-    const newSkinId = standardSkin?.id ?? '1'
-    setSkinId(newSkinId)
-
-    debouncedRefreshVGS(newGodId, newSkinId, volume)
+    setSkinId(standardSkin?.id ?? '1')
   }
 
-  const handleChangeSkin = (skinId: string): void => {
-    const newSkinId = skinId ?? '1'
-    setSkinId(newSkinId)
-
-    debouncedRefreshVGS(godId, newSkinId, volume)
+  const handleChangeSkin = (newSkinId: string): void => {
+    setSkinId(newSkinId ?? '1')
   }
 
   return (

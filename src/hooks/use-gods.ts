@@ -4,7 +4,6 @@ import ky from 'ky'
 type GodsType = Array<{
   id: string
   name: string
-  skins: Array<{ id: string; name: string }>
 }>
 
 export const useGods = () => {
