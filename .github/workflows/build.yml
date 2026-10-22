@@ -30,15 +30,14 @@ jobs:
           VITE_TWITCH_CLIENT_ID: ${{ vars.VITE_TWITCH_CLIENT_ID }}
           VITE_TWITCH_CLIENT_URL: ${{ vars.VITE_TWITCH_CLIENT_URL }}
 
-      - name: Deploy to FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: sftp
-          port: 22
-          local-dir: ./dist/
-          server-dir: ${{ vars.FTP_SERVER_DIR }}
-          exclude: |
-            output/**
+      - name: Deploy via rsync over SSH
+        run: |
+          sudo apt-get install -y -q sshpass
+          sshpass -e rsync -az --exclude 'output/' \
+            -e "ssh -o StrictHostKeyChecking=no -p 22" \
+            dist/ "$FTP_USERNAME@$FTP_SERVER:$FTP_SERVER_DIR"
+        env:
+          SSHPASS: ${{ secrets.FTP_PASSWORD }}
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_SERVER_DIR: ${{ vars.FTP_SERVER_DIR }}
