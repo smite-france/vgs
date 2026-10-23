@@ -307,7 +307,7 @@ export function Home() {
         </div>
         {isListening ? (
           <div className="flex flex-col gap-2">
-            <p className="text-sm text-muted-foreground">
+            <p className="w-[500px] text-sm text-muted-foreground">
               Read-only: you cannot send messages from this chat (Twitch
               blocks login inside embeds). Use the Twitch chat directly.
             </p>
