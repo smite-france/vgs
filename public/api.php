@@ -8,6 +8,8 @@ $m = $_GET['m'] ?? null;
 try {
     $pdo = new PDO('sqlite:/home/smitefrawc/db-vgs/vgs.db');
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    // Front compares ids as strings; PHP >= 8.1 returns native ints from SQLite
+    $pdo->setAttribute(PDO::ATTR_STRINGIFY_FETCHES, true);
 
     if ($c === null) {
         http_response_code(400);
