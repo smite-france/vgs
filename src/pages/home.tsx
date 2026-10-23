@@ -314,7 +314,7 @@ export function Home() {
             <iframe
               title="twitch-chat"
               src={`https://www.twitch.tv/embed/${channel}/chat?parent=${HOST}`}
-              className="w-full flex-grow scroll-auto"
+              className="w-[500px] flex-grow scroll-auto"
               height={700}
             />
           </div>
